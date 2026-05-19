@@ -6,16 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 import asyncio
 import uuid
-
+import json
 
 app = FastAPI()
 
-
-
-#Our Database
 analyses_db = {}
-
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 PIPELINE_STAGES = [
     {"stage": "downloading_video", "seconds": 3, "msg": "Downloading combat video footage..."},
     {"stage": "extracting_frames", "seconds": 6, "msg": "Extracting frames at 60fps for analysis..."},
@@ -34,15 +28,12 @@ PIPELINE_STAGES = [
     {"stage": "generating_insights", "seconds": 4, "msg": "Compiling fighter performance analytics..."}
 ]
 
-
 class VideoRequest(BaseModel):
     video_url: str
 
 async def run_ai_simulation(new_id: str):
     try:
-
         analyses_db[new_id]["status"] = "processing"
-
 
         for step in PIPELINE_STAGES:
             stage_name = step["stage"]
@@ -62,13 +53,11 @@ async def run_ai_simulation(new_id: str):
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
 
-
                 analyses_db[new_id]["logs"].append(log_packet)
 
         analyses_db[new_id]["status"] = "completed"
     except Exception:
         analyses_db[new_id]["status"] = "failed"
-
 
 @app.post("/analyses")
 def analyses(video_url: VideoRequest, background_tasks: BackgroundTasks):
@@ -84,13 +73,10 @@ def analyses(video_url: VideoRequest, background_tasks: BackgroundTasks):
         "analysis_id": new_id
     }
 
-
 @app.get("/analyses/{id}/stream")
 async def analyses_stream(id: str):
-
     if id not in analyses_db:
         raise HTTPException(status_code=404, detail="Analysis ID not found")
-
 
     async def log_pusher():
         sent_count = 0
@@ -107,7 +93,7 @@ async def analyses_stream(id: str):
                 for i in range(sent_count, total_logs):
                     yield {
                         "event": "progress",
-                        "data": folder["logs"][i]
+                        "data": json.dumps(folder["logs"][i])
                     }
                 sent_count = total_logs
 
@@ -120,9 +106,7 @@ async def analyses_stream(id: str):
 
             await asyncio.sleep(0.5)
 
-
     return EventSourceResponse(log_pusher())
-
 
 @app.get("/analyses/{id}")
 def analyses_get(id: str):
