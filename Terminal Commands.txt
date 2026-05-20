@@ -1,0 +1,20 @@
+--------------Backend------------------
+
+cd hitai-analysis-pipeline
+
+cd backend
+
+pip install fastapi uvicorn pydantic sse-starlette
+
+uvicorn main:app --reload
+
+
+------------Frontend--------------------
+
+cd hitai-analysis-pipeline
+
+cd frontend
+
+npm install
+
+npm run dev

@@ -154,7 +154,7 @@ export default function App() {
             </h4>
             {isReconnecting && (
               <span className="reconnect-alert">
-                ⚠️ Reconnecting to stream...
+                 Reconnecting to stream...
               </span>
             )}
           </div>
